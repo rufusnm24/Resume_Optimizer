@@ -1,10 +1,16 @@
 """Keyword extraction utilities for ATS alignment."""
 from __future__ import annotations
 
+import os
 import re
 from collections import Counter
 from dataclasses import dataclass
 from typing import Iterable, List, Sequence
+
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 STOPWORDS = {
     "the",
@@ -63,13 +69,78 @@ def _ngram(tokens: Sequence[str], n: int) -> Iterable[str]:
         yield " ".join(tokens[i : i + n])
 
 
-def extract_keywords(text: str, *, max_keywords: int = 20) -> List[KeywordCandidate]:
+def extract_keywords_openai(text: str, *, max_keywords: int = 20) -> List[KeywordCandidate]:
+    """Extract keywords using OpenAI's semantic understanding."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key or OpenAI is None:
+        # Fallback to basic extraction
+        return extract_keywords(text, max_keywords=max_keywords)
+    
+    client = OpenAI(api_key=api_key)
+    
+    prompt = f"""Extract the most important keywords and technical skills from this job description for ATS optimization. 
+    Focus on:
+    - Technical skills and tools
+    - Programming languages and frameworks
+    - Industry-specific terms
+    - Job requirements and qualifications
+    - Action-oriented competencies
+
+    Return exactly {max_keywords} keywords as a JSON array of objects with this format:
+    [{{"keyword": "python", "synonyms": ["pandas", "numpy"], "importance": 0.95}}]
+
+    Job Description:
+    {text[:3000]}"""  # Limit to avoid token limits
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1000,
+            temperature=0.3
+        )
+        
+        import json
+        result_text = response.choices[0].message.content.strip()
+        # Extract JSON from response (handle potential markdown formatting)
+        if "```json" in result_text:
+            result_text = result_text.split("```json")[1].split("```")[0]
+        elif "```" in result_text:
+            result_text = result_text.split("```")[1].split("```")[0]
+        
+        keywords_data = json.loads(result_text)
+        
+        candidates = []
+        for item in keywords_data:
+            keyword = item.get("keyword", "").lower().strip()
+            if keyword and keyword not in STOPWORDS:
+                synonyms = [s.lower().strip() for s in item.get("synonyms", [])]
+                importance = float(item.get("importance", 0.5))
+                candidates.append(KeywordCandidate(
+                    token=keyword,
+                    score=importance * 10,  # Scale to match basic extraction scores
+                    synonyms=synonyms
+                ))
+        
+        return candidates[:max_keywords]
+        
+    except Exception as e:
+        print(f"OpenAI extraction failed: {e}. Falling back to basic extraction.")
+        return extract_keywords(text, max_keywords=max_keywords)
+
+
+def extract_keywords(text: str, *, max_keywords: int = 20, use_openai: bool = True) -> List[KeywordCandidate]:
     """Return ranked keyword candidates.
-
-    The extractor balances unigrams and bigrams then appends synonym suggestions to
-    encourage distribution-aware scoring.
+    
+    Args:
+        text: Job description text to extract keywords from
+        max_keywords: Maximum number of keywords to return
+        use_openai: Whether to use OpenAI for enhanced extraction (falls back to basic if unavailable)
     """
-
+    if use_openai:
+        return extract_keywords_openai(text, max_keywords=max_keywords)
+    
+    # Basic extraction logic (original implementation)
     tokens = normalise(text)
     if not tokens:
         return []

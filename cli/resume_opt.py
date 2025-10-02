@@ -38,6 +38,29 @@ def _split_csv(value: str) -> List[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def _validate_openai_setup() -> bool:
+    """Check if OpenAI is properly configured."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        console.print("[yellow]Warning: OPENAI_API_KEY not found. Using basic extraction methods.[/yellow]")
+        return False
+    
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+        # Test API key with a minimal request
+        client.models.list()
+        console.print("[green]✓ OpenAI API key validated successfully[/green]")
+        return True
+    except ImportError:
+        console.print("[yellow]Warning: OpenAI package not installed. Install with: pip install openai[/yellow]")
+        return False
+    except Exception as e:
+        console.print(f"[red]Warning: OpenAI API key validation failed: {e}[/red]")
+        console.print("[yellow]Falling back to basic extraction methods.[/yellow]")
+        return False
+
+
 def _optimize(
     *,
     resume_path: Path,
@@ -45,9 +68,10 @@ def _optimize(
     output_dir: Path,
     ats_threshold: float,
     strict: bool,
+    use_openai: bool = True,
 ) -> dict:
     resume_text = resume_path.read_text(encoding="utf-8")
-    keywords = extract_keywords(job.description)
+    keywords = extract_keywords(job.description, use_openai=use_openai)
     document = parse_document(resume_text)
     scorer = ATSScorer()
     before = scorer.score(
@@ -57,7 +81,7 @@ def _optimize(
         sections_present=document.section_names,
         page_estimate=document.page_estimate(),
     )
-    rewrite = optimize_resume(resume_text, keywords, strict=strict)
+    rewrite = optimize_resume(resume_text, keywords, strict=strict, use_openai=use_openai)
     optimized_path = output_dir / "main_optimized.tex"
     optimized_path.write_text(rewrite.optimized_tex, encoding="utf-8")
 
@@ -136,10 +160,17 @@ def pipeline(
     strict: bool = typer.Option(False, help="Restrict bullet edits to ±10 chars"),
     manual_mode: bool = typer.Option(False, help="Skip LinkedIn automation"),
     manual_jd: List[Path] = typer.Option(None, help="Manual JD files (text or JSON)"),
+    use_openai: bool = typer.Option(True, help="Use OpenAI for enhanced optimization"),
 ) -> None:
     """Run the full harvesting + optimization pipeline."""
 
     load_dotenv()
+    
+    # Validate OpenAI setup if requested
+    openai_available = False
+    if use_openai:
+        openai_available = _validate_openai_setup()
+    
     titles = _split_csv(job_titles)
     locs = _split_csv(locations)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -172,6 +203,7 @@ def pipeline(
             output_dir=output_dir,
             ats_threshold=ats_threshold,
             strict=strict,
+            use_openai=openai_available and use_openai,
         )
         if result["meets_threshold"]:
             console.print(f"[green]Achieved ATS {result['after']['total']}[/green]")
@@ -196,10 +228,17 @@ def optimize(
     output_dir: Path = typer.Option(Path("artifacts")),
     ats_threshold: float = typer.Option(80.0),
     strict: bool = typer.Option(False),
+    use_openai: bool = typer.Option(True, help="Use OpenAI for enhanced optimization"),
 ) -> None:
     """Optimize a resume using a manual job description file."""
 
     load_dotenv()
+    
+    # Validate OpenAI setup if requested
+    openai_available = False
+    if use_openai:
+        openai_available = _validate_openai_setup()
+    
     output_dir.mkdir(parents=True, exist_ok=True)
     job = LinkedInScraper.load_manual_file(jd_file)
     result = _optimize(
@@ -208,6 +247,7 @@ def optimize(
         output_dir=output_dir,
         ats_threshold=ats_threshold,
         strict=strict,
+        use_openai=openai_available and use_openai,
     )
     console.print(f"Optimized resume saved to {result['paths']['optimized_tex']}")
     console.print(f"PDF saved to {result['paths']['pdf']}")
