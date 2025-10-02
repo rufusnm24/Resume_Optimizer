@@ -4,3 +4,4 @@ tmp/
 artifacts/
 artifacts/jobs/
 Resume_Optimized.pdf
+.venv/
