@@ -2,18 +2,13 @@
 from __future__ import annotations
 
 import difflib
-import os
 from collections import Counter
 from dataclasses import dataclass
 from typing import Dict, List, Sequence, Tuple
 
 from ats.keyword_extract import SYNONYMS, KeywordCandidate
+from openai_utils import DEFAULT_OPENAI_MODEL, get_openai_client
 from .ast_parser import parse_document
-
-try:
-    from openai import OpenAI
-except ImportError:
-    OpenAI = None
 
 
 @dataclass
@@ -35,63 +30,82 @@ def _replace_synonym(text: str, synonym: str, keyword: str) -> Tuple[str, bool]:
     return new_text, True
 
 
-def _optimize_bullet_openai(bullet_content: str, keywords: Sequence[KeywordCandidate], *, strict: bool = False) -> str:
+def _optimize_bullet_openai(
+    bullet_content: str,
+    keywords: Sequence[KeywordCandidate],
+    *,
+    strict: bool = False,
+) -> str:
     """Use OpenAI to rewrite a bullet point to include keywords naturally."""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key or OpenAI is None:
-        return bullet_content  # Return original if OpenAI unavailable
-    
-    client = OpenAI(api_key=api_key)
-    
+    client = get_openai_client()
+    if client is None:
+        return bullet_content
+
     keyword_list = [kw.token for kw in keywords[:10]]  # Limit to top 10 keywords
-    
+
     prompt = f"""Rewrite this resume bullet point to naturally incorporate relevant keywords while maintaining professional quality and truthfulness.
 
 IMPORTANT CONSTRAINTS:
 - Keep the same core achievements and responsibilities
 - Maintain professional, action-oriented language
-- {"Length must stay within ±10 characters of original" if strict else "Length should be reasonable (50-200 characters)"}
+- {'Length must stay within +/- 10 characters of original' if strict else 'Length should stay between 50 and 200 characters'}
 - Use strong action verbs
 - Include specific metrics/numbers if present in original
-- DO NOT fabricate achievements or add false information
+- Do NOT fabricate achievements or add false information
 
-Target Keywords (use 1-3 if relevant): {', '.join(keyword_list)}
+Target keywords (use 1-3 if relevant): {', '.join(keyword_list)}
 
 Original: {bullet_content}
 
 Rewritten:"""
-    
+
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=150,
-            temperature=0.4
+            model=DEFAULT_OPENAI_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You rewrite resume bullets to improve ATS alignment while staying factual.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=180,
+            temperature=0.4,
         )
-        
-        rewritten = response.choices[0].message.content.strip()
-        
+
+        rewritten = (response.choices[0].message.content or "").strip()
+        if not rewritten:
+            return bullet_content
+
         # Validate length constraint for strict mode
         if strict and abs(len(rewritten) - len(bullet_content)) > 10:
             return bullet_content
-            
+
         return rewritten
-        
-    except Exception as e:
-        print(f"OpenAI bullet rewrite failed: {e}")
+
+    except Exception as exc:
+        print(f"OpenAI bullet rewrite failed: {exc}")
         return bullet_content
 
 
-def optimize_resume(tex_content: str, keywords: Sequence[KeywordCandidate], *, strict: bool = False, use_openai: bool = True) -> RewriteResult:
+def optimize_resume(
+    tex_content: str,
+    keywords: Sequence[KeywordCandidate],
+    *,
+    strict: bool = False,
+    use_openai: bool = True,
+) -> RewriteResult:
     document = parse_document(tex_content)
     usage = Counter()
 
-    before_counts: Dict[str, int] = {candidate.token: tex_content.lower().count(candidate.token) for candidate in keywords}
+    before_counts: Dict[str, int] = {
+        candidate.token: tex_content.lower().count(candidate.token) for candidate in keywords
+    }
 
     for idx, bullet in enumerate(document.bullets):
         original = bullet.content
         updated = original
-        
+
         # Try OpenAI optimization first if enabled
         if use_openai:
             ai_optimized = _optimize_bullet_openai(original, keywords, strict=strict)
@@ -101,13 +115,15 @@ def optimize_resume(tex_content: str, keywords: Sequence[KeywordCandidate], *, s
                 for candidate in keywords:
                     count = updated.lower().count(candidate.token)
                     usage[candidate.token] += count
-                
+
                 if updated != original:
                     document.replace_bullet(idx, updated)
                 continue
-        
+
         # Fallback to original logic if OpenAI not used or failed
-        per_bullet = Counter({candidate.token: updated.lower().count(candidate.token) for candidate in keywords})
+        per_bullet = Counter(
+            {candidate.token: updated.lower().count(candidate.token) for candidate in keywords}
+        )
         for candidate in keywords:
             if usage[candidate.token] >= 2:
                 continue
@@ -140,7 +156,9 @@ def optimize_resume(tex_content: str, keywords: Sequence[KeywordCandidate], *, s
             document.replace_bullet(idx, updated)
 
     optimized_tex = document.render()
-    optimized_counts: Dict[str, int] = {candidate.token: optimized_tex.lower().count(candidate.token) for candidate in keywords}
+    optimized_counts: Dict[str, int] = {
+        candidate.token: optimized_tex.lower().count(candidate.token) for candidate in keywords
+    }
     keyword_map = {
         candidate.token: {"before": before_counts[candidate.token], "after": optimized_counts[candidate.token]}
         for candidate in keywords

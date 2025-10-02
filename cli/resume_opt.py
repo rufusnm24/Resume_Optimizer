@@ -24,6 +24,7 @@ except ImportError:  # Provide minimal shim when rich is absent
             print(message)
 
 from ats.keyword_extract import KeywordCandidate, extract_keywords
+from openai_utils import validate_openai_setup as _check_openai
 from ats.scorer import ATSScorer, summarise_keywords
 from compile.pdf_compile import PDFCompiler
 from harvest.linkedin_scraper import LinkedInScraper, ManualJob, load_manual_jobs_from_paths
@@ -40,25 +41,18 @@ def _split_csv(value: str) -> List[str]:
 
 def _validate_openai_setup() -> bool:
     """Check if OpenAI is properly configured."""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        console.print("[yellow]Warning: OPENAI_API_KEY not found. Using basic extraction methods.[/yellow]")
-        return False
-    
-    try:
-        from openai import OpenAI
-        client = OpenAI(api_key=api_key)
-        # Test API key with a minimal request
-        client.models.list()
-        console.print("[green]✓ OpenAI API key validated successfully[/green]")
+    ok, error = _check_openai()
+    if ok:
+        console.print('[green]OpenAI API key validated successfully[/green]')
         return True
-    except ImportError:
-        console.print("[yellow]Warning: OpenAI package not installed. Install with: pip install openai[/yellow]")
-        return False
-    except Exception as e:
-        console.print(f"[red]Warning: OpenAI API key validation failed: {e}[/red]")
-        console.print("[yellow]Falling back to basic extraction methods.[/yellow]")
-        return False
+
+    if error == 'OPENAI_API_KEY environment variable is not set':
+        console.print('[yellow]Warning: OPENAI_API_KEY not found. Using basic extraction methods.[/yellow]')
+    elif error == 'openai package is not installed':
+        console.print('[yellow]Warning: OpenAI package not installed. Install with: pip install openai[/yellow]')
+    else:
+        console.print(f"[yellow]Warning: {error or 'OpenAI validation failed'}. Falling back to basic extraction methods.[/yellow]")
+    return False
 
 
 def _optimize(
@@ -157,7 +151,7 @@ def pipeline(
     resume_path: Path = typer.Option(..., exists=True),
     output_dir: Path = typer.Option(Path("artifacts")),
     ats_threshold: float = typer.Option(80.0, help="Minimum ATS score"),
-    strict: bool = typer.Option(False, help="Restrict bullet edits to ±10 chars"),
+    strict: bool = typer.Option(False, help="Restrict bullet edits to +/- 10 chars"),
     manual_mode: bool = typer.Option(False, help="Skip LinkedIn automation"),
     manual_jd: List[Path] = typer.Option(None, help="Manual JD files (text or JSON)"),
     use_openai: bool = typer.Option(True, help="Use OpenAI for enhanced optimization"),
