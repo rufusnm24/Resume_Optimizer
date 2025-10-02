@@ -19,10 +19,11 @@ An end-to-end automation agent that harvests LinkedIn job descriptions, optimize
    - Windows PowerShell: `python -m venv .venv; .venv\Scripts\Activate.ps1`
 2. Install dependencies: `pip install -r requirements.txt`
 3. Install Playwright browsers if you plan to use automated harvesting: `playwright install`
-4. Copy the environment template and populate it:
+4. Copy the environment template:
    - Linux/macOS: `cp .env.example .env`
    - Windows PowerShell: `Copy-Item .env.example .env`
-5. Edit `.env` and provide the required keys:
+5. Replace `resumes/main.tex` with your LaTeX resume content (a starter template is provided).
+6. Edit `.env` and provide the required keys:
    - `LINKEDIN_EMAIL` / `LINKEDIN_PASSWORD` for automated scraping (leave blank when using manual mode)
    - `OPENAI_API_KEY` for enhanced keyword extraction and bullet rewriting
    - Optional `LATEX_API_ENDPOINT` for remote PDF compilation
@@ -30,24 +31,25 @@ An end-to-end automation agent that harvests LinkedIn job descriptions, optimize
 ## Running the Agent
 ### Full Pipeline (harvest + optimize)
 ```bash
-python -m cli.resume_opt pipeline   --job-titles "Data Analyst, Project Manager"   --locations "New York, Remote"   --resume-path "~/resumes/main.tex"   --output-dir "./artifacts"   --ats-threshold 82 --strict
+python -m cli.resume_opt pipeline   --job-titles "Data Analyst, Project Manager"   --locations "New York, Remote"   --resume-path "resumes/main.tex"   --output-dir "./artifacts"   --ats-threshold 82 --strict
 ```
 - Use `--manual-mode` to skip Playwright and feed local job descriptions (see next section).
 - Pass `--use-openai false` to disable OpenAI usage even when the key is present.
 
 ### Manual Optimization
 ```bash
-python -m cli.resume_opt optimize   --resume-path "~/resumes/main.tex"   --jd-file "./samples/jd_pm.txt"   --ats-threshold 85 --strict
+python -m cli.resume_opt optimize   --resume-path "resumes/main.tex"   --jd-file "./samples/jd_pm.txt"   --ats-threshold 85 --strict
 ```
 You can supply `.txt` job descriptions or JSON exports created by the harvester.
 
 ## Outputs
-Each run writes artifacts into the chosen `--output-dir`:
+Each run reads your source resume from `resumes/main.tex` (or the path you supply) and writes artifacts into the chosen `--output-dir`:
 - `main_optimized.tex`: rewritten LaTeX resume
 - `diff.patch`: unified diff versus the original resume
 - `keyword_map.json`: before/after keyword counts
 - `report.md`: human-readable ATS summary
 - `Resume_Optimized.pdf`: compiled resume (requires LaTeX toolchain or API)
+- The optimizer keeps the original file untouched and rewrites bullets in `main_optimized.tex` so you can review changes before copying them back.
 
 ## Testing and Quality
 ```bash
