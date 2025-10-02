@@ -24,7 +24,7 @@ An end-to-end automation agent that harvests LinkedIn job descriptions, optimize
    - Windows PowerShell: `Copy-Item .env.example .env`
 5. Replace `resumes/main.tex` with your LaTeX resume content (a starter template is provided).
 6. Edit `.env` and provide the required keys:
-   - `LINKEDIN_EMAIL` / `LINKEDIN_PASSWORD` for automated scraping (leave blank when using manual mode)
+   - Optional: `LINKEDIN_EMAIL` / `LINKEDIN_PASSWORD` if you want the scraper to authenticate (otherwise it runs in anonymous mode).
    - `OPENAI_API_KEY` for enhanced keyword extraction and bullet rewriting
    - Optional `LATEX_API_ENDPOINT` for remote PDF compilation
 
@@ -34,6 +34,7 @@ An end-to-end automation agent that harvests LinkedIn job descriptions, optimize
 python -m cli.resume_opt pipeline   --job-titles "Data Analyst, Project Manager"   --locations "New York, Remote"   --resume-path "resumes/main.tex"   --output-dir "./artifacts"   --ats-threshold 82 --strict
 ```
 - Use `--manual-mode` to skip Playwright and feed local job descriptions (see next section).
+- Automated harvesting now runs without LinkedIn login; accept any optional prompts that appear in the visible browser.
 - Pass `--use-openai false` to disable OpenAI usage even when the key is present.
 
 ### Manual Optimization
@@ -50,6 +51,8 @@ Each run reads your source resume from `resumes/main.tex` (or the path you suppl
 - `report.md`: human-readable ATS summary
 - `Resume_Optimized.pdf`: compiled resume (requires LaTeX toolchain or API)
 - The optimizer keeps the original file untouched and rewrites bullets in `main_optimized.tex` so you can review changes before copying them back.
+
+- Each pipeline run now writes into a timestamped subdirectory inside your chosen output folder (e.g., `artifacts/20251002_173045`).
 
 ## Testing and Quality
 ```bash

@@ -15,6 +15,11 @@ class Option:
     exists: bool = False
 
 
+class Exit(SystemExit):
+    def __init__(self, *, code: int = 0) -> None:
+        super().__init__(code)
+
+
 class Typer:
     def __init__(self, *, help: str | None = None) -> None:
         self.help = help or ""
@@ -133,4 +138,4 @@ def _resolve_annotation(annotation: Any) -> Any:
     return annotation
 
 
-__all__ = ["Typer", "Option"]
+__all__ = ["Typer", "Option", "Exit"]

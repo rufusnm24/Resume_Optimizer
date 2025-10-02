@@ -9,14 +9,11 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import time
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Iterable, List, Optional, Sequence
-
-ARTIFACT_DIR = Path("artifacts/jobs")
-ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
-
 
 @dataclass
 class ManualJob:
@@ -49,6 +46,23 @@ class JobPosting:
         return json.dumps(asdict(self), indent=2, ensure_ascii=False)
 
 
+
+
+
+def clear_job_artifacts(target: Path | None = None) -> None:
+    """Remove any previously harvested job files."""
+    directory = target or Path("artifacts/jobs")
+    if not directory.exists():
+        return
+    for path in directory.iterdir():
+        try:
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
+        except FileNotFoundError:
+            continue
+
 class LinkedInScraper:
     """Headless LinkedIn job harvester with polite scraping defaults."""
 
@@ -59,11 +73,18 @@ class LinkedInScraper:
         *,
         manual_mode: bool = False,
         delay_seconds: float = 2.0,
+        authenticate: bool = False,
+        max_postings: int = 1,
+        job_output_dir: Optional[Path] = None,
     ) -> None:
         self.email = email
         self.password = password
         self.manual_mode = manual_mode
         self.delay_seconds = delay_seconds
+        self.authenticate = authenticate
+        self.max_postings = max(1, max_postings)
+        self.job_output_dir = job_output_dir or Path("artifacts/jobs")
+        self.job_output_dir.mkdir(parents=True, exist_ok=True)
 
     # Public API -----------------------------------------------------------------
     def harvest(
@@ -132,42 +153,82 @@ class LinkedInScraper:
 
         postings: List[JobPosting] = []
         with sync_playwright() as p:  # pragma: no cover - network automation not unit tested
-            browser = p.chromium.launch(headless=True)
+            browser = p.chromium.launch(headless=False)
             page = browser.new_page()
-            self._login(page)
+            if self.authenticate and self.email and self.password:
+                self._login(page)
             for title in job_titles:
                 for location in locations:
                     postings.extend(self._search_and_collect(page, title, location))
+                    if len(postings) >= self.max_postings:
+                        break
                     time.sleep(self.delay_seconds)
+                if len(postings) >= self.max_postings:
+                    break
             browser.close()
-        return postings
+        return postings[: self.max_postings]
 
     def _login(self, page) -> None:  # pragma: no cover - requires browser
         if not self.email or not self.password:
-            raise RuntimeError("LinkedIn credentials missing. Provide LINKEDIN_EMAIL/PASSWORD or use manual mode.")
+            return
         page.goto("https://www.linkedin.com/login")
         page.fill("input[id=username]", self.email)
         page.fill("input[id=password]", self.password)
         page.click("button[type=submit]")
-        page.wait_for_timeout(int(self.delay_seconds * 1000))
+        print("LinkedIn login submitted. Complete any verification within 10 seconds...")
+        page.wait_for_timeout(10000)
+
+    def _dismiss_login_prompt(self, page) -> bool:  # pragma: no cover - requires browser
+        selectors = [
+            "button[aria-label='Dismiss']",
+            "button[aria-label='Dismiss this message']",
+            "button[data-test-modal-close-btn]",
+            "button[data-control-name='overlay.close']",
+            "button.artdeco-modal__dismiss",
+            "button[aria-label='Close']",
+            ".artdeco-hoverable-content__close",
+            ".artdeco-toast-item__dismiss",
+        ]
+        for _ in range(5):
+            for selector in selectors:
+                try:
+                    element = page.query_selector(selector)
+                    if element:
+                        element.click()
+                        page.wait_for_timeout(500)
+                        return True
+                except Exception:
+                    continue
+            try:
+                page.keyboard.press('Escape')
+                page.wait_for_timeout(300)
+            except Exception:
+                pass
+        return False
 
     def _search_and_collect(self, page, title: str, location: str) -> List[JobPosting]:  # pragma: no cover
         query = title.replace(" ", "%20")
         loc = location.replace(" ", "%20")
         page.goto(f"https://www.linkedin.com/jobs/search/?keywords={query}&location={loc}")
         page.wait_for_timeout(int(self.delay_seconds * 1000))
+        self._dismiss_login_prompt(page)
         postings: List[JobPosting] = []
         elements = page.query_selector_all(".job-card-container--clickable")
         for element in elements:
+            if len(postings) >= self.max_postings:
+                break
             try:
                 element.click()
                 page.wait_for_timeout(int(self.delay_seconds * 1000))
                 title_text = page.query_selector(".jobs-unified-top-card__job-title")
-                company_text = page.query_selector(".jobs-unified-top-card__company-name").inner_text().strip()
-                location_text = page.query_selector(".jobs-unified-top-card__bullet").inner_text().strip()
+                company_el = page.query_selector(".jobs-unified-top-card__company-name")
+                location_el = page.query_selector(".jobs-unified-top-card__bullet")
+                company_text = company_el.inner_text().strip() if company_el else "Unknown"
+                location_text = location_el.inner_text().strip() if location_el else location
                 seniority_text_element = page.query_selector(".jobs-unified-top-card__job-insight")
                 seniority = seniority_text_element.inner_text().strip() if seniority_text_element else None
-                description_text = page.query_selector(".jobs-description__content").inner_text().strip()
+                description_el = page.query_selector(".jobs-description__content")
+                description_text = description_el.inner_text().strip() if description_el else ""
                 url = page.url
                 keywords = self._simple_keywords(description_text)
                 postings.append(
@@ -181,14 +242,16 @@ class LinkedInScraper:
                         keywords=keywords,
                     )
                 )
+                return postings
             except Exception:
                 continue
         return postings
 
     # Utility --------------------------------------------------------------------
     def _persist(self, posting: JobPosting) -> None:
-        target = ARTIFACT_DIR / f"{self._slug(posting.title)}_{self._slug(posting.company)}.json"
+        target = self.job_output_dir / f"{self._slug(posting.title)}_{self._slug(posting.company)}.json"
         target.write_text(posting.to_json(), encoding="utf-8")
+        (self.job_output_dir / "job_description.txt").write_text(posting.description, encoding="utf-8")
 
     @staticmethod
     def _slug(value: str) -> str:

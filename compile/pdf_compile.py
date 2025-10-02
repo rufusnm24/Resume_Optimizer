@@ -55,14 +55,21 @@ class PDFCompiler:
         if not engine_path:
             return None
         command = [engine_path, "-interaction=nonstopmode", str(tex_path)]
-        try:
-            subprocess.run(command, check=True, cwd=tex_path.parent, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except subprocess.CalledProcessError:
-            return None
+        result = subprocess.run(
+            command,
+            check=False,
+            cwd=tex_path.parent,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         generated_pdf = tex_path.with_suffix(".pdf")
         if generated_pdf.exists():
             generated_pdf.replace(output_path)
+            if result.returncode != 0:
+                print("Warning: pdflatex reported issues; review artifacts/main_optimized.log for details.")
             return output_path
+        if result.returncode != 0:
+            print("Warning: pdflatex failed to create PDF; falling back to minimal placeholder.")
         return None
 
     # Minimal fallback ----------------------------------------------------------

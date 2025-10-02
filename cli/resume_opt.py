@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import asdict
+from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -27,12 +28,29 @@ from ats.keyword_extract import KeywordCandidate, extract_keywords
 from openai_utils import validate_openai_setup as _check_openai
 from ats.scorer import ATSScorer, summarise_keywords
 from compile.pdf_compile import PDFCompiler
-from harvest.linkedin_scraper import LinkedInScraper, ManualJob, load_manual_jobs_from_paths
+from harvest.linkedin_scraper import (
+    LinkedInScraper,
+    ManualJob,
+    clear_job_artifacts,
+    load_manual_jobs_from_paths,
+)
 from latex.ast_parser import parse_document
 from latex.rewriter import optimize_resume
 
 console = Console()
 app = typer.Typer(help="AI-powered resume optimizer pipeline")
+
+
+
+def _create_run_directory(base: Path) -> Path:
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    candidate = base / timestamp
+    counter = 1
+    while candidate.exists():
+        counter += 1
+        candidate = base / f"{timestamp}_{counter:02d}"
+    candidate.mkdir(parents=True, exist_ok=False)
+    return candidate
 
 
 def _split_csv(value: str) -> List[str]:
@@ -168,16 +186,26 @@ def pipeline(
     titles = _split_csv(job_titles)
     locs = _split_csv(locations)
     output_dir.mkdir(parents=True, exist_ok=True)
+    run_dir = _create_run_directory(output_dir)
+    console.print(f"Writing artifacts to {run_dir}")
+    jobs_dir = run_dir / "jobs"
 
     email = os.getenv("LINKEDIN_EMAIL")
     password = os.getenv("LINKEDIN_PASSWORD")
-    scraper = LinkedInScraper(email, password, manual_mode=manual_mode)
+    scraper = LinkedInScraper(
+        email,
+        password,
+        manual_mode=manual_mode,
+        authenticate=bool(email and password),
+        job_output_dir=jobs_dir,
+    )
 
     if manual_mode:
         manual_jobs = load_manual_jobs_from_paths(manual_jd)
     else:
         manual_jobs = None
 
+    clear_job_artifacts(jobs_dir)
     postings = scraper.harvest(titles, locs, manual_inputs=manual_jobs)
 
     best_result = None
@@ -194,7 +222,7 @@ def pipeline(
         result = _optimize(
             resume_path=resume_path,
             job=manual_job,
-            output_dir=output_dir,
+            output_dir=run_dir,
             ats_threshold=ats_threshold,
             strict=strict,
             use_openai=openai_available and use_openai,
@@ -234,11 +262,13 @@ def optimize(
         openai_available = _validate_openai_setup()
     
     output_dir.mkdir(parents=True, exist_ok=True)
+    run_dir = _create_run_directory(output_dir)
+    console.print(f"Writing artifacts to {run_dir}")
     job = LinkedInScraper.load_manual_file(jd_file)
     result = _optimize(
         resume_path=resume_path,
         job=job,
-        output_dir=output_dir,
+        output_dir=run_dir,
         ats_threshold=ats_threshold,
         strict=strict,
         use_openai=openai_available and use_openai,
