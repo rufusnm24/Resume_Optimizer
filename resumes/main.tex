@@ -1,52 +1,289 @@
-% Update this LaTeX file with your resume content before running the pipeline.
-% The optimizer reads from this file and writes the enhanced version to your chosen output directory.
-
-\documentclass[11pt]{article}
+\documentclass[10pt,letter]{article}
+\usepackage[margin=0.10in]{geometry}
+\usepackage{fontawesome}
 \usepackage{enumitem}
-\usepackage[margin=1in]{geometry}
-\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{color, xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{parskip}
+\pagestyle{empty}
+\sloppy
+
+% define your main blue color
+\definecolor{mainblue}{RGB}{0,70,127}
+\definecolor{MAINBLUE}{RGB}{0,70,127}
+
+\newcommand{\boldlarger}[1]{\textbf{\normalsize #1}}
+
+
+\titleformat{\section}
+  {\color{mainblue}\normalsize\bfseries\uppercase}
+  {\thesection}
+  {0em}
+  {}
+  [\vspace{1pt}\color{mainblue}\titlerule]
+
+\renewcommand{\familydefault}{\sfdefault}
+\setlist[itemize]{noitemsep, left=0pt, topsep=1pt, partopsep=1pt}
+\titlespacing{\section}{0pt}{3pt}{2pt}
+
+
 
 \begin{document}
+\small
 
+% HEADER
 \begin{center}
-    {\LARGE Your Name Here}\\
-    \vspace{4pt}
-    Location \enspace $\vert$ \enspace email@example.com \enspace $\vert$ \enspace (123)~456-7890\\
-    \href{https://linkedin.com/in/your-profile}{linkedin.com/in/your-profile} $\vert$ 
-    \href{https://github.com/your-username}{github.com/your-username}
+  {\LARGE \bfseries Rufus Nemalikanti} \\[2pt]
+  {\normalsize
+  \href{mailto:rn6371@rit.edu}{rn6371@rit.edu} \quad \textbar \quad
+  +1~585-351-9060 \quad \textbar \quad United States
+  }
 \end{center}
 
-\section*{Professional Summary}
-Results-oriented professional with X years of experience in YOUR FIELD. Highlight core strengths and
-a signature achievement in two sentences.
 
-\section*{Experience}
-\textbf{Job Title} \hfill Company -- City, ST\\
-\textit{Month 20XX -- Present}
-\begin{itemize}[leftmargin=*]
-    \item Start each bullet with a strong verb and include impact, metrics, and relevant keywords.
-    \item Highlight accomplishments that align with target job descriptions.
+
+% SUMMARY
+% \section*{SUMMARY}
+% \vspace{1mm}
+% Results-driven Software Engineer with 3+ years of experience delivering enterprise-grade applications across telecom, ERP, and healthcare domains. Skilled in full-stack development with C\#, VB.NET, ASP.NET, Java, SQL, and Angular, and backend systems with Spring Boot, REST APIs, and microservices. Proven track record of improving system performance, automating 90\% of manual workflows, and reducing deployment cycles by up to 40\% using CI/CD pipelines in Jenkins, GitLab, and Docker/Kubernetes. Experienced in real-time systems, ETL processes, data reporting (SSRS/Crystal Reports), and cloud solutions (Azure, AWS). Known for building scalable, secure, and maintainable software with strong collaboration across QA, DevOps, and product teams in Agile/Scrum environments.
+
+% \section*{SUMMARY}
+% \vspace{1mm}
+% Versatile Software and Data Engineer with 3+ years of experience delivering enterprise applications across healthcare, ERP, and telecom domains. Proficient in full-stack development using C\#, VB.NET, Angular, Java, Spring Boot, and SQL, with expertise in REST APIs, microservices, real-time systems, and ETL workflows. Skilled in CI/CD pipelines (Jenkins, GitLab, GitHub Actions), cloud platforms (Azure, AWS, IBM Watson), and reporting tools (Crystal Reports, SSRS, Power BI). Specialized in integrating AI/ML models into web applications using TensorFlow, PyTorch, scikit-learn, and IBM Watson AutoAI, with hands-on experience deploying LLMs via Flask. Passionate about building scalable, secure, and intelligent systems using modern DevOps and cloud-native practices in agile environments.
+
+% \section*{SUMMARY}
+% \vspace{1mm}
+% Software Engineer with \textbf{3+ years} of experience in delivering \textbf{scalable enterprise} applications across \textbf{telecom}, \textbf{healthcare}, and \textbf{ERP} domains. Proficient in front-end technologies like \textbf{React.js}, \textbf{Electron.js} and \textbf{Angular}, and backend development using \textbf{Java}, \textbf{Spring Boot}, \textbf{C\#}, \textbf{VB.NET},\textbf{ REST APIs}, and \textbf{microservices}. Experienced in designing event-driven architectures with \textbf{Kafka} and \textbf{WebSocket}, and deploying cloud-native applications on \textbf{AWS} and \textbf{Azure}. Adept in \textbf{CI/CD} pipelines (\textbf{Jenkins}, \textbf{GitLab}, \textbf{GitHub Actions}), \textbf{Docker/Kubernetes}, and \textbf{Agile} practices. Strong background in \textbf{automating} business workflows, \textbf{ETL} pipelines, and \textbf{report} generation processes, reducing manual effort by up to 90\%.
+
+
+
+
+% EXPERIENCE
+\section*{EXPERIENCE}
+\boldlarger{MLOps Engineer} \hfill \boldlarger{Bulk Magic} \hfill \textit{Remote, USA \hspace{4.25em} \boldlarger{May 2025 -- Present}}\\
+\vspace{-16pt}
+\begin{itemize}
+
+  \item Designed and deployed production-grade LLMOps software platform powering chatbots, recommendation engines, and fraud detection; reduced customer query resolution time by 45\%.
+
+  \item Authored modular, testable Python code and integrated CI/CD pipelines, improving code maintainability and reuse across teams.
+
+  \item Built and maintained high-throughput LLM inference servers with \textbf{vLLM and FastAPI}, scaling workloads on Kubernetes clusters with GPU acceleration, improving request throughput by 3 times.
+  
+  \item Developed retrieval-augmented generation (RAG) pipelines using \textbf{LangChain, FAISS, and ChromaDB} to support multilingual product Q/A; decreased hallucination rates by 30\%.
+
+\end{itemize}
+\vspace{-6pt}
+
+\boldlarger{Machine Learning Engineer} \hfill \boldlarger{Baxter International INC.} \hspace{-2em} \hfill \textit{Skaneateles, NY, USA \hspace{1em} \boldlarger{Sep 2024 -- May 2025}}\\
+\vspace{-16pt}
+\begin{itemize}
+\item Co-designed a custom \textbf{MLOps platform} for Baxter's Machine Learning teams, enabling end-to-end ML workflows from data versioning to scalable deployments, both on-premise and on Azure, with integrated monitoring and real-time performance tracking, improving deployment efficiency by 40\%.
+\item Developed and configured an on-premise \textbf{Kubernetes cluster using Containerd and Nvidia GPU Operator}, scaling it to a 10-node GPU environment and increasing training throughput by 60\%.
+\item Implemented \textbf{Kubeflow} for end-to-end MLOps orchestration, integrating \textbf{MLflow} for model versioning \textbf{(Pickle, Joblib, and TensorFlow SavedModel)}, experiment tracking and \textbf{DVC} for data versioning, non-versioned workflows by 80\%, improving dataset reproducibility and experiment tracking efficiency.
+\item Optimized distributed multi-node training with \textbf{TensorFlow and PyTorch} using \textbf{Training Operators}, leveraging all GPUs across the cluster, reducing model training time by 40\% compared to single-node training setups.
+\item Deployed production-ready GPU-based inference models using \textbf{KServe}, reducing deployment time by 30\% and enhancing model scalability.
+\item Designed and productionized end-to-end ML pipelines with \textbf{Kubeflow}, automating data processing, training, and serving at scale. Enabled reproducibility across teams, reducing manual intervention by 50\% and accelerating model release cycles for clinical applications.
+\item Utilized Prometheus and Grafana to monitor cluster performance, model endpoints, and GPU/CPU/disk usage, ensuring efficient resource management
+and reducing system downtime by 25\%.
+\item Led the migration of an on-prem MLOps platform to \textbf{Azure AKS using Bicep and Kustomize}, standardizing IaC across teams.
+\end{itemize}
+\vspace{-6pt}
+% \item 
+% \textbf{Tata Consultancy Services (GE Healthcare)} \hfill Mar 2021 -- Jul 2022\\
+% \textit{System Engineer} \hfill Hyderabad, India
+
+% \begin{itemize}
+%   \item Developed and optimized microservices for a healthcare catalog platform using Java, Spring Boot, Angular, and Kafka; reduced API response times by 35\% and improved procurement workflows for 500+ users.
+%   \item Engineered a real-time patient monitoring system leveraging Electron.js, Spring Boot, WebSocket, and Kafka; enabled low-latency telemetry for 1,000+ medical devices. Deployed containerized services using Docker and Kubernetes (AKS), reducing deployment time by 40\% and enabling scalable performance testing via simulated device environments.
+%   \item Built CI/CD pipelines using Jenkins and Github Actions; automated deployments and enhanced release reliability while reducing errors by 25\%.
+%   \item Implemented automated testing workflows with Selenium, JUnit, and Cucumber (BDD), cutting manual QA effort by 50\% and improving test coverage. 
+%   \item Enabled real-time observability by integrating ELK Stack (Elasticsearch, Logstash, Kibana) for system monitoring, alerting, and root cause analysis across critical applications
+%   \item Collaborated with cross-functional teams and authored over 50 technical documents, including system specs, release notes, and user guides to improve knowledge transfer and onboarding.
+% \end{itemize}
+
+\boldlarger{Data Scientist (ML Infrastructure)} \hfill \boldlarger{Lentra (TheDataTeam)} \hspace{4em} \hfill \textit{Chennai, TN, India \hspace{1em} \boldlarger{Aug 2021 -- Jul 2022}}\\
+\vspace{-16pt}
+\begin{itemize}
+
+  \item Implemented a robust CI/CD pipeline leveraging \textbf{AzureML, Python SDK, and GitHub Actions} to integrate \textbf{MLOps} seamlessly; optimized application deployment process, leading to a 30\% increase in deployment speed and accuracy.
+
+  \item Implemented continuous monitoring for deployed models by logging input data, preprocessing/postprocessing outputs, and system metrics (CPU, disk); leveraged \textbf{Python logging, Azure Log Analytics and drift detection techniques}, reducing issue resolution time by 60\%.
+  
+  \item Executed \textbf{ETL workflows in Azure Databricks}, improving processing efficiency by 20\% through optimized extraction, transformation, and loading.
+  
+  \item Developed and maintained transformation logic in \textbf{Azure Databricks notebooks using PySpark} for risk-flagging and feature engineering; optimized ETL load to \textbf{Azure MySQL}, increasing pipeline efficiency by 20\%.
+
 \end{itemize}
 
-\textbf{Previous Job Title} \hfill Previous Company -- City, ST\\
-\textit{Month 20XX -- Month 20XX}
-\begin{itemize}[leftmargin=*]
-    \item Keep bullets concise and focused on outcomes.
-    \item Remove entries that are no longer relevant to your target role.
+% \begin{itemize}
+
+% \item Designed and delivered a modular \textbf{full-stack catalog management platform} using \textbf{Angular}, streamlining healthcare product onboarding.
+% \item Integrated \textbf{Salesforce APIs} with \textbf{Spring boot} backend microservices to automate catalog synchronization, reducing manual effort by 60\%.
+% \item Implemented \textbf{Kafka-based event pipelines} for high-throughput telemetry processing with guaranteed message durability.
+% \item Deployed \textbf{Docker containerized microservices} to \textbf{AWS} using, \textbf{EC2}, \textbf{ALB}, \textbf{Route 53}, and \textbf{Terraform}, cutting deployment times by 50\%.
+% \item Automated regression and end-to-end tests using \textbf{Selenium}, \textbf{JUnit}, and \textbf{Cucumber (BDD)}, increasing test coverage to 80\%.
+% \item Refactored legacy services into a \textbf{microservices architecture}, reducing technical debt and enabling seamless \textbf{CI/CD} integration.
+% \item Created over \textbf{10 comprehensive technical documents}, including API specifications, architecture diagrams, and user guides.
+% \item Implemented \textbf{Kafka-based event pipelines} for high-throughput telemetry processing with guaranteed message durability.
+% \item Deployed \textbf{Docker containerized microservices} to \textbf{AWS} using, \textbf{EC2}, \textbf{ALB}, \textbf{Route 53}, and \textbf{Terraform}, cutting deployment times by 50\%.
+% \item Implemented \textbf{Kafka-based event pipelines} for high-throughput telemetry processing with guaranteed message durability.
+% % \item Collaborated with \textbf{product owners} and \textbf{UX teams} to enhance usability, resulting in a \textbf{20\% boost in clinician satisfaction scores}.
+
+
+% \end{itemize}
+
+\vspace{-6pt}
+
+\boldlarger{Data Science Intern} \hfill \boldlarger{Lentra (TheDataTeam) \hspace{-3em}} \hfill \textit{Chennai, TN, India \hspace{2em} \boldlarger{Jul 2020 – Jul 2021}}\\
+\vspace{-16pt}
+\begin{itemize}
+\item Contributed to a prototype claims risk assessment system for an insurance client using \textbf{AWS SageMaker and Lambda} for automated preprocessing, training, and real-time scoring, improving fraud detection pipeline efficiency by 25\%.
+\item Executed the implementation of the \textbf{AWS Find Matches} ML algorithm within an \textbf{ETL pipeline using AWS Glue}, improving data accuracy and processing efficiency by 30\% through deduplication, optimized storage, and streamlined workflows.
+\item Enhanced data accuracy by 20\% through rigorous post-deduplication testing and analysis with AWS Athena, optimizing training datasets for ML algorithms.
+
+
+  
+  % \item Led \textbf{data engineering} efforts to clean, transform, and validate telemetry data for use in clinical analytics applications.
 \end{itemize}
 
-\section*{Projects}
-\textbf{Project Name} -- Short context
-\begin{itemize}[leftmargin=*]
-    \item Summarize the problem, your contribution, and measurable results.
+% \item
+% \textbf{SMART BRIDGE} \hfill Jun 2019 – Jul 2019  \\
+% \textit{IoT Solutions Engineer Intern} \hfill Hyderabad, India
+% \begin{itemize}
+%   \item Built an end-to-end vehicle safety solution using \textbf{Arduino}, \textbf{NodeMCU}, \textbf{GSM/GPS}, and \textbf{Blynk Cloud}, achieving \textbf{95\% accuracy} in accident detection through real-time alert systems.
+% \end{itemize}
+
+
+
+
+ \vspace{-2pt}
+
+% \textbf{TCS – General Electric} \hfill Mar 2021 -- Jun 2021\\
+% \textit{Data Analyst Intern} \hfill Hyderabad, India
+% \vspace{-6pt}
+% \begin{itemize}
+%   \item Created Power BI dashboards by querying SQL Server and Oracle databases to visualize diagnostics and equipment metrics.
+%   \item Designed and deployed anomaly detection models using Azure ML Studio, achieving a 15\% improvement in early failure detection.
+% \end{itemize}
+
+% SKILLS
+% \section*{SKILLS}
+% \vspace{1mm}
+
+% \begin{itemize}
+%   % \item \textbf{Languages:}  C\#, VB.NET, ASP.NET, SQL, Java, Python, HTML, JavaScript, jQuery, CSS
+%   % \item \textbf{Databases:} MS SQL Server, MySQL, MongoDB, Neo4j, Azure Data Lake
+%   % \item \textbf{Tools:} Visual Studio, Git, SVN, Jenkins, Postman, Swagger, Power BI, SSMS, JIRA, Confluence, ELK Stack, Cucumber, Splunk
+%   % \item \textbf{Cloud/Platforms:} Azure, AWS, IBM Watson, Windows Server, Terraform, Dell Boomi, Microsoft GP, Netsuite, IFTTT, Blynk  
+%   % \item \textbf{Frameworks/Technologies:} .NET Framework, WinForms, REST APIs, Entity Framework, Crystal Reports, SSRS, Angular, NodeJS, Flask, Django
+%   % % \item \textbf{Concepts:} Web Development, Real-time Systems, Event-driven Programming, Agile/Scrum, SDLC, Unit Testing, Automated Testing
+%   % \item \textbf{Soft Skills: }{Leadership, Event Management, Time Management, Adaptability, Creative Thinking, Collaboration}
+% \end{itemize}
+
+% PROJECTS
+\section*{PROJECTS}
+\begin{itemize}
+
+    \item \boldlarger{Clinical Notes Summarization Pipeline (AWS SageMaker, ClinicalBERT, S3, Lambda, CloudWatch):} Developed an end-to-end ML pipeline on AWS using synthetic EHR data. Fine-tuned ClinicalBERT for text summarization with SageMaker Training Jobs, automated preprocessing with S3, Lambda, and deployed scalable inference endpoints via SageMaker. Integrated CloudWatch for monitoring latency and drift, and stored results in DynamoDB to mimic production-ready healthcare ML workflows.
+
+    \item \boldlarger{Gun Violence Forecasting Project:} Developed a multivariate time series forecasting model to predict monthly firearm homicide rates per 100,000 population. Integrated and engineered data from multiple authoritative sources, handling seasonal decomposition, stationarity tests, and applying advanced techniques such as ARIMA, Holt-Winters, VAR, Prophet, Dynamic Factor Models, LSTM, and XGBoost.
+  
+\end{itemize}
+ \vspace{-4pt}
+
+\section*{SKILLS}
+\begin{itemize}
+  \item \boldlarger{Programming Languages:} Python, Java, Bash, SQL, HTML, CSS, JavaScript, React.
+
+   \item \boldlarger{GenAI:} Transformers, Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), LangChain, LangServe, LangSmith, vLLM, Hugging Face, Ollama, Gemma, OpenAI GPT-4, OpenAI Models, Groq Api, LangChain Embeddings (OpenAI, Hugging Face, Ollama), FAISS, ChromaDB
+
+  \item \boldlarger{MLOps:} Azure Machine Learning Studio, AWS SageMaker, IBM Watson Studio, Azure Kubernetes, Upstream Kubernetes, Containerd, Kubeflow, Data Sharding, Distributed Multi-Node Training (MultiWorkerMirroredStrategy), MLflow, DVC, Kserve, TensorFlow Serving (TFServing), TorchServe , TensorFlow, PyTorch, Scikit-Learn.
+
+    \item \boldlarger{Time Series Analysis and Statistics:} Residual analysis, ACF, Seasonal Models, Decomposition Methods, Exponential Smoothing, ARMA, ARIMA, SARIMA, One-sample and Two-sample hypothesis testing, ANOVA, Regression, Goodness of fit, and Independence.
+
+  \item \boldlarger{Cloud Platforms \& Infrastructure:}  Azure Kubernetes Service (AKS), Azure ML, Azure ADF, Azure Storage, Azure Databricks, AWS Lambda, AWS S3, AWS Glue, AWS Athena, Kubernetes (Upstream \& AKS), Docker, Containerd, Helm, Kustomize, Azure Virtual Network, Subnet Peering.
+
+  \item \boldlarger{DevOps \& Platform Engineering:} GitHub Actions, Azure Data Factory Pipelines, Git, ARM Templates, Bicep, Bash/Shell, Azure CLI, YAML.
+
+  \item \boldlarger{Linux Systems \& Networking:} Linux CLI, Shell Scripting, Systemd, Cron Jobs, curl, SSH, Azure Route Tables, Firewalls, Network Security Groups.
+
+  \item \boldlarger{Monitoring \& Observability:} Prometheus, Grafana, Azure Log Analytics, Kube-State-Metrics, AlertManager, Python Logging
+
+
 \end{itemize}
 
-\section*{Skills}
-\begin{itemize}[leftmargin=*]
-    \item Categorize key technical and soft skills (e.g., Programming: Python, SQL; Tools: Tableau, Airflow).
+\vspace{-1mm}
+% \section*{SKILLS}
+% \vspace{1mm}
+% \begin{itemize}
+%   \item \boldlarger{Programming Languages:}  C\#, Java, Python, Visual Basic, C++, SQL, HTML, CSS, JavaScript, Bash
+%   \vspace{1mm}
+
+%   \item \boldlarger{Frameworks \& Libraries:} .NET Framework, Spring Boot, JUnit, Angular, Qt, FreeRTOS,  ReactJS, Flask, Django, Kafka,  Entity Framework
+%   \vspace{1mm}
+
+
+%   \item \boldlarger{Databases \& Platforms:} SQL Server, MySQL, PostgreSQL, MongoDB, Neo4j, Azure Data Lake, Microsoft GP, NetSuite
+%   \vspace{1mm}
+
+%   \item \boldlarger{Cloud \& DevOps:} AWS, Azure, IBM Watson, Blynk, Docker, Kubernetes, Terraform, GitHub Actions, GitLab, Jenkins ,Linux/Windows Server
+%   \vspace{1mm}
+
+%   \item \boldlarger{Tools \& Utilities:} Visual Studio, Git, Postman, SSMS, JIRA, Confluence, OpenTelemetry, ELK Stack, Cucumber, Splunk, FastAPI
+%   \vspace{1mm}
+
+%     \item \boldlarger{Embedded Systems:} Arduino, NodeMCU, ESP32, UART/I2C/SPI, Real-time Task Scheduling, Interrupt Handling
+%   \vspace{1mm}
+
+%   \item \boldlarger{Reporting \& ETL:} SSRS, Power BI, Dell Boomi, Crystal Reports, Swagger, ETL Pipelines, GP–NetSuite Integrations
+%   \vspace{1mm}
+
+%   \item \boldlarger{AI/ML \& LLMs:} Scikit-learn, TensorFlow, PyTorch, IBM AutoAI, Azure ML Studio, Transformers, LangChain, NLP, OpenAI APIs
+% \end{itemize}
+
+
+%  \vspace{-2pt}
+
+\section*{EDUCATION}
+\begin{itemize}
+
+\item \boldlarger{Rochester Institute of Technology}, Master of Science in Data Science \hfill \boldlarger{Aug 2022 -- May 2025}
+  % \item \boldlarger{Rochester Institute of Technology} \hfill \textbf{Aug 2022 - May 2025}\\
+  % \textit{Master of Science in Data Science} \hfill \textit{CGPA: 4.00/4.00}
+
+   \item \boldlarger{Amrita Vishwa Vidyapeetham}, 
+  Bachelor of Technology in Computer Science and Engineering \hfill \boldlarger{Jun 2017 -- May 2021}
+  % \item \boldlarger{Vellore Institute of Technology} \hfill \textbf{Aug 2017 - May 2021} \\
+  % \textit{Bachelor of Technology in Internet of Things} \hfill \textit{CGPA: 8.96/10.00 }
 \end{itemize}
 
-\section*{Education}
-\textbf{University Name} -- Degree, Major \hfill Grad Month 20XX
+
+
+ \vspace{-4pt}
+% CERTIFICATIONS
+\section*{CERTIFICATIONS \& AWARDS}
+
+\begin{itemize}
+{\small
+  \item Microsoft Certified: Azure Data Scientist Associate (\textbf{DP-100})
+% }
+% \vspace{1mm}
+%    \item 
+% Industrial IoT using LoRaWAN Technology (\boldlarger{Enthu})
+  %   \item Android App Development (Coursera)
+
+\end{itemize}
+
+% % REFERENCES
+% \section*{REFERENCES}
+% \vspace{1mm}
+% \begin{itemize}
+%   \item \textbf{Jody Smith}, Software Lead \hfill \href{mailto:jsmith@korewireless.com}{jsmith@korewireless.com}
+%   \item \textbf{Matt Telesky}, Director of Software Engineering \hfill \href{mailto:mtelesky@korewireless.com}{mtelesky@korewireless.com}
+%   % \item \textbf{Emily Baker}, Senior HR \hfill \href{mailto:ebaker@korewireless.com}{ebaker@korewireless.com}
+% \end{itemize}
 
 \end{document}
